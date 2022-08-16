@@ -1,6 +1,8 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
+# https://github.com/nidhi-30/CNN-Regression-Pytorch
 
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 import torch
 from torch.nn import Conv1d
@@ -15,24 +17,6 @@ from torch.utils.data import DataLoader, TensorDataset
 # install pytorch's ignite and then import R2 score package
 # !pip install pytorch-ignite
 # from ignite.contrib.metrics.regression.r2_score import R2Score
-
-dataset = pd.read_csv("/content/drive/My Drive/Dataset_Assignment/housing.csv")
-dataset = dataset.dropna()
-dataset.head(10)
-
-# plot each feature of the dataset on separate sub-plots
-print("Plot for each feature of the dataset:")
-dataset.plot(subplots=True, grid=True)
-
-Y = dataset["median_house_value"]
-X = dataset.loc[:, "longitude":"median_income"]
-x_train, x_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.3, random_state=2003
-)
-x_train_np = x_train.to_numpy()
-y_train_np = y_train.to_numpy()
-x_test_np = x_test.to_numpy()
-y_test_np = y_test.to_numpy()
 
 
 class CnnRegressor(torch.nn.Module):
@@ -78,6 +62,26 @@ class CnnRegressor(torch.nn.Module):
         return output
 
 
+# https://github.com/ageron/handson-ml/tree/master/datasets/housing
+dataset = pd.read_csv("data/housing.csv")
+dataset = dataset.dropna()
+dataset.head(10)
+
+# plot each feature of the dataset on separate sub-plots
+print("Plot for each feature of the dataset:")
+dataset.plot(subplots=True, grid=True)
+plt.show()
+
+Y = dataset["median_house_value"]
+X = dataset.loc[:, "longitude":"median_income"]
+x_train, x_test, y_train, y_test = train_test_split(
+    X, Y, test_size=0.3, random_state=2003
+)
+x_train_np = x_train.to_numpy()
+y_train_np = y_train.to_numpy()
+x_test_np = x_test.to_numpy()
+y_test_np = y_test.to_numpy()
+
 batch_size = 100
 model = CnnRegressor(batch_size, X.shape[1], 1)
 
@@ -93,9 +97,9 @@ def model_loss(model, dataset, train=False, optimizer=None):
     avg_score = 0
     count = 0
 
-    for input, output in iter(dataset):        
+    for input, output in iter(dataset):
         predictions = model.feed(input)
-        
+
         loss = performance(predictions, output)
 
         # compute the R2 score
@@ -112,7 +116,7 @@ def model_loss(model, dataset, train=False, optimizer=None):
             # use optimizer in order to update parameters
             # of the model based on gradients
             optimizer.step()
-        
+
         avg_loss += loss.item()
         # avg_score += score
         count += 1
@@ -135,7 +139,7 @@ tensor = TensorDataset(inputs, outputs)
 loader = DataLoader(tensor, batch_size, shuffle=True, drop_last=True)
 
 # loop for number of epochs and calculate average loss
-for epoch in range(epochs):    
+for epoch in range(epochs):
     avg_loss, avg_r2_score = model_loss(model, loader, train=True, optimizer=optimizer)
     print(
         "Epoch "
